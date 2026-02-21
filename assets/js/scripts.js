@@ -1,557 +1,215 @@
 /******************************************************************
-	
-	
-	@ Item          Gravity // Coming Soon - Under Construction
-	@ Version       3.6
-	@ Author		Avanzare
-	@ Website		http://themeforest.net/user/avanzare 
-	
+
+    @ Item     Creators ApS - intro page scripts
+    @ Rebuilt to match index.html DOM and config.js CONFIG object
 
  ******************************************************************/
- 
- 
- /******************************************************************
+
+(function ($) {
+    "use strict";
+
+    // ── 1. BACKGROUND ────────────────────────────────────────────────
+    $(document).ready(function () {
+
+        switch (CONFIG.background) {
+            case "slider":
+                $("body").vegas({
+                    slides: sliderBG,
+                    transition: sliderTransition,
+                    delay: screenTime,
+                    transitionDuration: fadeDuration,
+                    firstTransitionDuration: 0,
+                    timer: false
+                });
+                break;
+            case "kenburns":
+                $("body").vegas({
+                    slides: sliderBG,
+                    animation: kenburnsEffect,
+                    delay: screenTime,
+                    transitionDuration: fadeDuration,
+                    timer: false
+                });
+                break;
+            case "image":
+                $("body").vegas({ slides: [{ src: imageBG }], timer: false });
+                break;
+            case "youtube":
+                $(".player").mb_YTPlayer();
+                break;
+            case "color":
+                $("#bg-overlay").css({ background: solidBG, opacity: 1 });
+                break;
+        }
+
+        // Background overlay + pattern
+        if (bgOverlayMode === "solid") {
+            $("#bg-overlay").css("background-color", bgOverlayColor);
+        }
+        $("#bg-overlay").css("opacity", bgOverlayOpacity);
+        $("#bg-pattern").css("opacity", bgPatternOpacity);
+
+        // White skin
+        if (CONFIG.skin === "white") { $("body").addClass("white"); }
+
+        // Parallax hover effect
+        if (CONFIG.parallax) {
+            $("#intro-content").parallax({ scalarX: 20, scalarY: 15, frictionX: 0.1, frictionY: 0.1 });
+        }
 
 
-	------------------------
-	-- TABLE OF CONTENTS --
-	------------------------
-	
-	--  1. Base
-	--  2. Overlay
-	--  3. Ajax - Subscribe
-	--  4. Ajax - Contact
-	--  5. Google Analytics
- 
- 
- ******************************************************************/
+        // ── 2. OVERLAY SYSTEM ─────────────────────────────────────────
+        var blockProcess   = false;
+        var currentSection = 0;
+        var sections       = $("#overlay > section");
+        var numSections    = sections.length;
 
+        var overlayAnimClass = overlayAnimation        === "slide" ? "slide-from-bottom" : "fade-In";
+        var contentAnimClass = overlayContentAnimation === "slide" ? "slide-from-bottom" : "fade-In";
+        $("#overlay").addClass(overlayAnimClass);
+        sections.addClass(contentAnimClass);
 
+        function nextSection() {
+            if (blockProcess || currentSection >= numSections) { return; }
+            blockProcess = true;
 
-
-/** 1. Base
-*******************************************************************/
-
-var blockProcess = true;
-prevent_class_removal = true;
-$(".hero .container-mid").addClass("block-overflow");
-
-jQuery(window).on('load', function() {
-	"use strict";	
-	
-	
-	
-	setTimeout(function() {		
-		$("#page-loader").addClass("hide-this");
-		$('#cycle').cycle("goto","0");
-
-		setTimeout(function() {	
-			$(".hero .background-content.page-enter-animated").addClass("show");
-
-			setTimeout(function() {	
-				$(".hero .front-content.page-enter-animated").addClass("show");
-				
-				setTimeout(function() {	
-					blockProcess = false;
-					$(".grcs_bullet_nav").addClass("init");
-
-					setTimeout(function() {	
-						if(prevent_class_removal == true) { $(".hero .container-mid").removeClass("block-overflow"); }
-						
-					}, 1000);
-					
-				}, 1000);
-
-			}, 600);
-
-			$(".social-icons li a").tooltip({
-				container: 'body',
-				delay: { "show": 150, "hide": 0 }
-			});
-
-		}, 200);
-		
-	}, 600);
-	
-	
-	
-});
-
-// Mobile Detect Variable
-var isMobile = {
-    Android:function(){return navigator.userAgent.match(/Android/i);},
-    BlackBerry:function(){return navigator.userAgent.match(/BlackBerry/i);},
-    iOS:function(){return navigator.userAgent.match(/iPhone|iPad|iPod/i);},
-    Opera:function(){return navigator.userAgent.match(/Opera Mini/i);},
-    Windows:function(){return navigator.userAgent.match(/IEMobile/i);},
-    any: function() {return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());}
-};
-
-// Add Class To Body When Mobile
-if(isMobile.any()) {
-    jQuery("body").addClass("is-mobile");
-}
-
-
-
-
-/**	2. OVERLAY
-*****************************************************/
-
-$(document).ready(function(){
-	"use strict";	
-	
-	
-	
-	function overlaySystem(sectionContainerPT,sectionsPT,frontpagePT,frontpageContainerPT) {
-		
-		// VARIABLES
-		var sectionContainer = $(sectionContainerPT),
-			sections = $(sectionContainerPT + ">" + sectionsPT),
-			clickedSectionIndex = 0,
-            bulletNavEvent = false,
-			upBtn = $(".go-up"),
-			downBtn = $(".go-down"),
-			
-			frontpage = $(frontpagePT),
-			frontpageContainer = $(frontpageContainerPT),
-			
-			amountOfSections = sections.length,
-			currentSection = 0,
-			currentSectionSelector;
-
-
-		function mobileSections(){
-            
-			if(option_overlay_merge_sections_on_mobile == "on"){
-				jQuery("body").addClass("merge-true");
-				amountOfSections = 1;
-				$(".social_icons li .go-down").parent().remove();
-			}
-				
-		} if(isMobile.any()) { mobileSections(); };
-		
-		
-		function hideFrontPage() {
-
-			prevent_class_removal = false;
-
-			$(".hero .container-mid").addClass("block-overflow");
-			frontpageContainer.children().css("transition","all 1000ms 500ms");
-			frontpage.addClass("overlay-active");
-			frontpage.removeClass("show");
-			frontpage.find("div.controls").removeClass("show");
-			
-			$('#cycle').cycle('pause');
-			
-		}
-		
-		function showFrontPage() {
-
-			prevent_class_removal = true;
-			
-			frontpageContainer.children().css("transition","all 800ms 200ms");
-			frontpage.removeClass("overlay-active");
-			frontpage.addClass("show");
-
-			if (option_hero_background_mode === "youtube") {
-
-				setTimeout(function() {
-					frontpage.find("div.controls").addClass("show");	
-				}, 200);	
-
-			}
-
-			setTimeout(function() {
-				if(prevent_class_removal == true) { $(".hero .container-mid").removeClass("block-overflow"); }
-            }, 1300);
-
-			setTimeout(function() {
-				$('#cycle').cycle('resume');
-			}, 1400);
-			
-		}
-		
-		function nextOverlay() {
-
-            if ( currentSection == amountOfSections || blockProcess === true ) {
-                return false;
-			}
-			
-			blockProcess = true;
-			sectionContainer.addClass("movement-in-progress");
-
-            if( currentSection === 0 ){
-                
-                hideFrontPage();
-                
-                setTimeout(function() {
-                    sectionContainer.addClass("open");
-                }, 200);	
-
+            if (currentSection === 0) {
+                $("#intro").addClass("overlay-active");
+                setTimeout(function () { $("#overlay").addClass("open"); }, 200);
             }
-            
-            
-            if(bulletNavEvent == false) {
-                
-                currentSection = currentSection + 1;
-                
-            } else {
-                
-                currentSection = clickedSectionIndex; 
-                bulletNavEvent = false;
-                
-            }
-            
+
+            currentSection++;
             sections.removeClass("active");
-            currentSectionSelector = sections.eq((currentSection - 1));
-            $(".social-icons li a").tooltip('hide');
-            
-            setTimeout(function() {
-                
-                currentSectionSelector.addClass("active");
-                updateBulletNav();
 
-                setTimeout(function() {
-
-                    upBtn.addClass("active");
-
-                    setTimeout(function() {
-						blockProcess = false;
-						sectionContainer.removeClass("movement-in-progress");
-                    }, 800);
-
-                }, 400);
-
-            }, 1000);
-
+            setTimeout(function () {
+                sections.eq(currentSection - 1).addClass("active");
+                $(".up-button").addClass("active");
+                setTimeout(function () { blockProcess = false; }, 800);
+            }, currentSection === 1 ? 600 : 400);
         }
 
-        function prevOverlay() {
-
-            if ( currentSection === 0 || blockProcess === true ) {
-                return false;
-            }
-            
-			blockProcess = true;
-			sectionContainer.addClass("movement-in-progress");
-            
-            if(bulletNavEvent == false) {
-                currentSection = currentSection - 1;
-            } else {
-                currentSection = clickedSectionIndex; 
-                bulletNavEvent = false;
-            }
-            
+        function prevSection() {
+            if (blockProcess || currentSection === 0) { return; }
+            blockProcess = true;
+            currentSection--;
             sections.removeClass("active");
-            currentSectionSelector = sections.eq((currentSection - 1));
 
-            setTimeout(function() {
-
-                currentSectionSelector.addClass("active");
-                updateBulletNav();
-
-                setTimeout(function() {
-					blockProcess = false;
-					sectionContainer.removeClass("movement-in-progress");
+            if (currentSection === 0) {
+                $(".up-button").removeClass("active");
+                $("#overlay").removeClass("open");
+                setTimeout(function () {
+                    $("#intro").removeClass("overlay-active");
+                    blockProcess = false;
                 }, 800);
-
-            }, 800);
-
-            if( currentSection === 0 ){
-
-                upBtn.removeClass("active");
-
-                setTimeout(function() {
-                    
-                    showFrontPage();
-                    sectionContainer.removeClass("open");
-                    
-                }, 800);
-
-            }
-
-        }
-		
-		function updateBulletNav() {
-            if( option_overlay_bullet_navigation === "on" && !$(".hero").hasClass("error-404") ) {
-                $(".grcs_bullet_nav .nav_dots").removeClass("active");
-                $(".grcs_bullet_nav .nav_dots").eq(currentSection).addClass("active");
+            } else {
+                sections.eq(currentSection - 1).addClass("active");
+                setTimeout(function () { blockProcess = false; }, 800);
             }
         }
-        
-        function clickBulletNav() {
-            
-            $('.grcs_bullet_nav .nav_dots').click(function(){
-                
-                clickedSectionIndex = $('.grcs_bullet_nav .nav_dots').index(this);
 
-                if( clickedSectionIndex != currentSection ) {
-                    if( clickedSectionIndex < currentSection  ) {
-                        
-                        bulletNavEvent = true;
-                        prevOverlay();
-                        
+        $(".go-down").click(nextSection);
+        $(".go-up").click(prevSection);
+
+        $("html").on("DOMMouseScroll mousewheel", function (e) {
+            var delta = e.originalEvent.wheelDelta || (e.originalEvent.detail * -1);
+            if (delta < 0) { nextSection(); } else { prevSection(); }
+        });
+
+        $(document).keydown(function (e) {
+            if (e.which === 40) { nextSection(); e.preventDefault(); }
+            if (e.which === 38) { prevSection(); e.preventDefault(); }
+        });
+
+        $(".social-icons li a").tooltip({ container: "body", delay: { show: 150, hide: 0 } });
+
+
+        // ── 3. SUBSCRIBE FORM ─────────────────────────────────────────
+        $(".subscribe-form").submit(function () {
+            $.ajax({
+                type: "POST", url: "assets/php/subscribe.php",
+                data: $(".subscribe-form").serialize(), dataType: "json",
+                success: function (json) {
+                    $(".subscribe-form").removeClass("error error-final");
+                    if (json.valid === 0) {
+                        $(".subscribe-form").addClass("error");
+                        $(".subscribe-form input").attr("placeholder", json.message).val("");
+                        setTimeout(function () { $(".subscribe-form").addClass("error-final"); }, 1500);
                     } else {
-                        
-                        bulletNavEvent = true;
-                        nextOverlay();
-                        
+                        $(".subscribe-form input, .subscribe-form button").val("").prop("disabled", true);
+                        $(".subscribe-form input").attr("placeholder", json.message);
+                        $(".subscribe-form").addClass("success");
                     }
                 }
-            
             });
+            return false;
+        });
 
+
+        // ── 4. CONTACT FORM ───────────────────────────────────────────
+        $("#contact-form").submit(function (e) {
+            e.preventDefault();
+            $.ajax({
+                type: "POST", url: "assets/php/contact.php",
+                data: $(this).serialize(), dataType: "json",
+                success: function (json) {
+                    $("#contact-form.error input, #contact-form.error textarea").removeClass("active");
+                    setTimeout(function () {
+                        if (json.nameMessage)    { $("#contact-form-name").addClass("active").attr("placeholder", json.nameMessage); $("#contact-form").addClass("error"); }
+                        if (json.emailMessage)   { $("#contact-form-email").addClass("active").val("").attr("placeholder", json.emailMessage); $("#contact-form").addClass("error"); }
+                        if (json.messageMessage) { $("#contact-form-message").addClass("active").attr("placeholder", json.messageMessage); $("#contact-form").addClass("error"); }
+                    }, 50);
+                    if (!json.nameMessage && !json.emailMessage && !json.messageMessage) {
+                        $("#contact-form").removeClass("error").addClass("success");
+                        $("#contact-form textarea").attr("placeholder", json.succesMessage);
+                        $("#contact-form input, #contact-form button, #contact-form textarea").val("").prop("disabled", true);
+                    }
+                }
+            });
+        });
+    });
+
+
+    // ── 5. INTRO ANIMATION + TEXT CYCLE (window load) ────────────────
+    $(window).on("load", function () {
+        var dur = fadeDuration + "ms";
+
+        // Remove loading screen
+        $("#page-load").addClass("remove");
+
+        // h1 elements start at opacity:0 via CSS; set them to 1 so they
+        // show through their parent .slide when the slide fades in.
+        $("#intro .slide h1").css({ transition: "opacity " + dur + " ease", opacity: 1 });
+
+        // Staggered reveal of intro elements
+        setTimeout(function () {
+            $("#intro .logo").css({ transition: "opacity " + dur + " ease", opacity: 1 });
+        }, 300);
+
+        setTimeout(function () {
+            $(".slider .slide").first().css({ transition: "opacity " + dur + " ease", opacity: 1 });
+        }, 650);
+
+        setTimeout(function () {
+            $("#intro p").css({ transition: "opacity " + dur + " ease", opacity: 1 });
+        }, 950);
+
+        setTimeout(function () {
+            $("#intro .arrow-wrap").css({ transition: "opacity " + dur + " ease", opacity: 1 });
+        }, 1150);
+
+        // Text slide cycle (cycling .slide opacity; h1 inside follows)
+        if ($(".slider .slide").length > 1) {
+            var slideIdx = 0;
+            setInterval(function () {
+                var $slides = $(".slider .slide");
+                $slides.eq(slideIdx).animate({ opacity: 0 }, fadeDuration);
+                slideIdx = (slideIdx + 1) % $slides.length;
+                var nextIdx = slideIdx;
+                setTimeout(function () {
+                    $slides.eq(nextIdx).animate({ opacity: 1 }, fadeDuration);
+                }, fadeDuration + 100);
+            }, screenTime);
         }
-        
-        function createBulletNav() {
-            
-            $("body").append('<div class="grcs_bullet_nav"></div>');
-            
-            for (var i = 0; i < (amountOfSections + 1); i++) { 
-                $(".grcs_bullet_nav").append('<div class="nav_dots"></div>');
-            }
-            
-            updateBulletNav();
-            clickBulletNav();
-            
-        } 
-        
-        if( option_overlay_bullet_navigation === "on" && !$(".hero").hasClass("error-404") ) {
-            createBulletNav();
-        }
-		
-			
-			
-		// EVENT - ON DOWN BUTTON CLICK
-		downBtn.click(function() {
-			nextOverlay();
-		});
+    });
 
-		// EVENT - ON UP BUTTON CLICK
-		upBtn.click(function() {
-			prevOverlay();
-		});
-
-		// EVENT - ON DOWN SCROLL GLOBAL	
-		$('html').on('DOMMouseScroll mousewheel', function(e){
-			
-			var theEvent = e.originalEvent.wheelDelta || e.originalEvent.detail*-1;
-			
-			if(theEvent / 120 < 0) {
-				nextOverlay();
-			}
-			
-		});
-
-		// EVENT - ON UP SCROLL GLOBAL	
-		$('html').on('DOMMouseScroll mousewheel', function(e){
-			
-			var theEvent = e.originalEvent.wheelDelta || e.originalEvent.detail*-1;
-			
-			if(theEvent / 120 > 0) {
-				prevOverlay();
-			}
-			
-		});
-
-		// EVENT - KEYDOWN	
-		$(document).keydown(function(e) {
-			
-			switch(e.which) {
-					
-				case 37: // left
-				break;
-				case 38: // up
-					prevOverlay();
-				break;
-				case 39: // right
-				break;
-				case 40: // down
-					nextOverlay();
-				break;
-				default: return; // exit this handler for other keys
-			}
-			
-			e.preventDefault();
-			
-		});
-			
-			
-		
-		// SKIN CHANGER ( Controlled via Config.js )
-		if (option_overlay_skin == "white") {
-			$("body").addClass("white");
-		}
-
-		// SWITCH ANIMATION OVERLAY ( Controlled via Config.js )
-		switch(option_overlay_animation){
-
-			case 'fade':
-				sectionContainer.addClass("fade-In");
-			break;
-			case 'slide':
-				sectionContainer.addClass("slide-from-bottom");
-			break;
-			default:
-			   sectionContainer.addClass("fade-In");
-			break;
-
-		}
-
-		// SWITCH ANIMATION OVERLAY CONTENT ( Controlled via Config.js )
-		switch(option_overlay_content_animation){
-
-			case 'fade':
-				sections.addClass("fade-In");
-			break;
-			case 'slide':
-				sections.addClass("slide-from-bottom");
-			break;
-			default:
-				sections.addClass("slide-from-bottom");
-			break;
-
-		}
-		
-	} 
-                  
-    overlaySystem("#overlay","section.overlay","#hero .front-content","#hero .front-content .container-mid");
-
-
-
-	
-/**	3. AJAX - SUBSCRIBE
- *****************************************************/
-	
-	$('.subscribe-form').submit(function() {
-		
-		  var postdata = $('.subscribe-form').serialize();
-		  
-		  $.ajax({
-			  
-			  type: 'POST',
-			  url: 'assets/php/subscribe.php',
-			  data: postdata,
-			  dataType: 'json',
-			  success: function(json) {
-                  
-                  $('.subscribe-form').removeClass("error").removeClass("error-final");
-				  
-				  if(json.valid === 0) {
-					  
-					  $('.subscribe-form').addClass("error");
-					  $('.subscribe-form input').attr("placeholder", json.message);
-					  $('.subscribe-form input').val('');
-                      
-                      setTimeout(function(){
-                          $('.subscribe-form').addClass("error-final");
-                      }, 1500);
-					  
-				  } else {
-					  
-					  $('.subscribe-form input,.subscribe-form button').val('').prop('disabled', true);
-					  $('.subscribe-form input').attr("placeholder",json.message);
-					  $('.subscribe-form').addClass("success");
-				  }
-			  }
-			  
-			});
-			
-			return false;
-			
-		});
-
-
-	
-
-/**	4. AJAX - CONTACT
- *****************************************************/	
-	
-		$("#contact-form").submit(function(e) {
-			 
-			e.preventDefault();
-			var postdata = $(this).serialize();
-			
-			$.ajax({
-				
-				type: "POST",
-				url: "assets/php/contact.php",
-				data: postdata,
-				dataType: "json",
-				success: function(json) {
-					 
-					$("#contact-form.error input, #contact-form.error textarea").removeClass("active");
-					
-					setTimeout(function(){
-						
-						if (json.nameMessage !== "") {
-							
-							$("#contact-form-name").addClass("active").attr("placeholder",json.nameMessage);
-						    $("#contact-form").addClass("error");
-							
-						}
-						
-						if (json.emailMessage !== "") {
-							
-						   $("#contact-form-email").addClass("active").val("").attr("placeholder",json.emailMessage);
-						   $("#contact-form").addClass("error");
-						   
-						}
-						
-						if (json.messageMessage !== "") {
-							
-							$("#contact-form-message").addClass("active").attr("placeholder",json.messageMessage);
-						    $("#contact-form").addClass("error");
-							
-						}
-						
-					}, 50);
-						
-					if (json.nameMessage === "" && json.emailMessage === "" && json.messageMessage === "") {
-						
-						$('#contact-form').removeClass("error").addClass("success");
-						$('#contact-form textarea, #contact-form input').attr("placeholder","");
-						$('#contact-form textarea').attr("placeholder",json.succesMessage);
-						$('#contact-form input, #contact-form button, #contact-form textarea').val('').prop('disabled', true);
-						
-					}
-					
-				}
-				
-			});
-			
-		});
-
-	
-	
-});
-	
-
-
-
-/**	5. GOOGLE ANALYTICS
- *****************************************************/	
-	
-if ( option_analytics_tracking == "on" ) {
-
-	var _gaq = _gaq || [];
-
-	function loadtracking() {
-        
-			window._gaq.push(['_setAccount', option_analytics_tracking_id]);
-			window._gaq.push(['_trackPageview']);
-			(function() {
-				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-			})();
-        
-	}
-
-	loadtracking();
-
-}
-
-
-
+})(jQuery);
